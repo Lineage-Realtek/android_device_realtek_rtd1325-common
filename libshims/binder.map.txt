@@ -1,0 +1,6 @@
+LIBBINDER {
+    global:
+        _ZN7android6Parcel13writeUnpaddedEPKv*;
+    local:
+        *;
+};

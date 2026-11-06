@@ -1,0 +1,16 @@
+service vendor.ipa_controller /vendor/bin/ipa_controller -ic 3
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+on init
+    write /sys/class/thermal/thermal_zone0/policy power_allocator
+
+on post-fs-data
+    mkdir /data/vendor/ipa 0775 system system
+
+on property:sys.boot_completed=1
+    # Start ipa_controller
+    start vendor.ipa_controller

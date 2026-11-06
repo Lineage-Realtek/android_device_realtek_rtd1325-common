@@ -1,0 +1,54 @@
+
+on early-init
+    setprop sys.usb.controller 98050000.dwc3
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=mtp
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=mtp,adb
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=rndis
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=adb
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=rndis,adb
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=ptp
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=ptp,adb
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:persist.vendor.rtk.device.mode.enabled=true
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:persist.vendor.rtk.device.mode.enabled=false
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role host
+
+# Bring-up ADB uses the same controller and role switch as recovery. The
+# asynchronous module loader creates the role-switch node after early-init.
+on property:vendor.all.modules.ready=1 && property:ro.debuggable=1
+    setprop sys.usb.controller 98050000.dwc3
+    setprop sys.usb.configfs 1
+    setprop persist.vendor.rtk.device.mode.enabled true
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+    setprop persist.sys.usb.config adb
+    setprop sys.usb.config adb
+
+# Keep a bounded log outside encrypted userdata in case USB cannot enumerate.
+on post-fs-data && property:ro.debuggable=1
+    mkdir /metadata/rtx2-bringup 0700 root root
+    start rtx2-boot-logcat
+
+service rtx2-boot-logcat /system/bin/logcat -b all -v threadtime -f /metadata/rtx2-bringup/logcat -r 1024 -n 3
+    class core
+    user root
+    group root log readproc
+    seclabel u:r:logpersist:s0
+    disabled
+    oneshot

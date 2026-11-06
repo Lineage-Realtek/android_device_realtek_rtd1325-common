@@ -1,0 +1,3 @@
+type rtk_audioutil_service, hal_service_type, service_manager_type;
+type rtk_karaoke_service, hal_service_type, service_manager_type;
+type rtk_voututil_service, hal_service_type, service_manager_type;

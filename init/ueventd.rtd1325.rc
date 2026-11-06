@@ -1,0 +1,65 @@
+# disp driver
+/dev/mali0           0666   system     graphics
+/dev/ion             0666   system     system
+/dev/ion_rtk         0666   system     system
+
+#####################################################
+# Note: all char dev should not be accessible except
+# owner and group owner, otherwise cts will be failed
+#####################################################
+
+/dev/hdmitx          0660   system     system
+/dev/dptx            0660   system     system
+/dev/mhltx           0660   system     system
+/dev/hdcp            0660   system     system
+/dev/rxhdcp2p2       0660   system     system
+/dev/vpu             0660   mediacodec mediacodec
+/dev/jpu             0660   mediacodec mediacodec
+/dev/ve3             0660   mediacodec mediacodec
+/dev/memalloc        0660   mediacodec mediacodec
+/dev/rtk-se          0660   mediacodec mediacodec
+/dev/rtk-md          0660   mediacodec mediacodec
+/dev/rtkbt_dev       0660   bluetooth  net_bt_admin
+/dev/ttyS1           0660   bluetooth  net_bt_admin
+/dev/sw_sync         0660   system     graphics
+/dev/uctrl           0660   media      root
+/dev/hse             0660   media      root
+/dev/rpc*            0660   media      media
+/dev/rpmsg*          0666   media      media
+/dev/rtk_urpc        0660   media      media
+/dev/rtk_fwdbg       0660   media      media
+/dev/video*          0660   system     camera
+/dev/uio*            0660   media      system
+/dev/cec*            0660   system     system
+/dev/i2c-*           0660   system     system
+/dev/gpiochip0	     0660   system     system
+/dev/snd/*           0660   system     audio
+/dev/graphics/*      0660   media      graphics
+/dev/tee*	     0666   media      audio
+/dev/mmcblk0rpmb     0660   system     system
+/dev/block/mmcblk0   0660   system     system
+#for one step
+/dev/block/platform/soc@0/98000000.rbus/98012000.emmc/by-name/param 0660 system system
+/dev/block/by-name/frp 0660 system     system
+/dev/buflock         0660   mediacodec graphics
+/dev/rtk_process_info 0660   mediacodec graphics
+/dev/rpc_mem         0660   mediacodec graphics
+/dev/tp           0660   system     system
+/dev/demod           0660   system     system
+/dev/demod_q	     0660   system     system
+
+# DMA_HEAPFIT
+/dev/rtk_heap                                    0666   system     system
+# DMAHEAP
+/dev/dma_heap/*                                  0666   system     system
+
+/dev/dri/*           0660   media      graphics
+/dev/rtk_sw_sync     0660   system     graphics
+
+/dev/iap	     0660   media      media
+/dev/socket/mdnsd    0660   system     system
+
+parallel_restorecon enabled
+parallel_restorecon_dir /sys/devices/platform/soc@0/98000000.rbus/98012000.emmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0
+
+/dev/fd655_dev	 0666   root      root

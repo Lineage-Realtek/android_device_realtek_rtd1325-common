@@ -1,0 +1,6 @@
+{
+    global:
+        _ZNK7android19GraphicBufferSource25getHGraphicBufferProducerEv;
+    local:
+        *;
+};

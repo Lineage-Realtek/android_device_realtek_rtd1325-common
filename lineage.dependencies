@@ -1,0 +1,6 @@
+[
+  {
+    "repository": "android_hardware_lineage_compat",
+    "target_path": "hardware/lineage/compat"
+  }
+]

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<!-- Realtek vendor HALs, so that the framework matrix accepts them -->
+<compatibility-matrix version="2.0" type="framework">
+    <hal format="aidl" optional="true">
+        <name>vendor.realtek.audioutil</name>
+        <version>2</version>
+        <interface>
+            <name>IAudioUtil</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="aidl" optional="true">
+        <name>vendor.realtek.karaoke</name>
+        <version>1</version>
+        <interface>
+            <name>IKaraoke</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.realtek.seutil.provider</name>
+        <version>1.0</version>
+        <interface>
+            <name>ISeUtil</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="aidl" optional="true">
+        <name>vendor.realtek.voututil</name>
+        <version>2</version>
+        <interface>
+            <name>IVoutUtil</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+</compatibility-matrix>

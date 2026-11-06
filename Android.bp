@@ -1,0 +1,52 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+soong_namespace {
+}
+
+cc_library_shared {
+    name: "libbinder_shim_rtk",
+    vendor: true,
+    host_supported: true,
+    srcs: ["libshims/Parcel.cpp"],
+    shared_libs: ["libbinder", "libutils"],
+    version_script: "libshims/binder.map.txt",
+}
+
+cc_test_host {
+    name: "libbinder_shim_rtk_test",
+    srcs: ["libshims/tests/ParcelTest.cpp"],
+    local_include_dirs: ["libshims"],
+    shared_libs: ["libbinder_shim_rtk", "libbinder", "libutils"],
+}
+
+cc_library_shared {
+    name: "libcodec2_hidl_shim_rtk",
+    vendor: true,
+    srcs: [
+        ":libgui_frame_event_aidl",
+        "libshims/GraphicBufferSource.cpp",
+    ],
+    version_script: "libshims/codec2_hidl.map.txt",
+    cflags: ["-DNO_BINDER"],
+    shared_libs: [
+        "android.hardware.graphics.bufferqueue@1.0",
+        "android.hardware.graphics.bufferqueue@2.0",
+        "android.hardware.graphics.common@1.1",
+        "android.hardware.graphics.common@1.2",
+        "android.hidl.token@1.0-utils",
+        "libbase",
+        "libcutils",
+        "libEGL",
+        "libhidlbase",
+        "liblog",
+        "libnativewindow",
+        "libstagefright_bufferqueue_helper",
+        "libsync",
+        "libui",
+        "libutils",
+    ],
+    static_libs: ["libgui_bufferqueue_static"],
+}

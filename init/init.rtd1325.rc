@@ -1,0 +1,541 @@
+on early-init
+    # FIXME: set iostats to 0 may cause bootchart fail to work
+    write /dev/sys/block/by-name/rootdisk/queue/iostats 0
+    write /dev/sys/block/by-name/userdata/queue/iostats 0
+#    mount debugfs debugfs /sys/kernel/debug mode=755
+
+    # unlimited logging to /dev/kmsg, use trailing _ char instead of new-line char
+    write /proc/sys/kernel/printk_devkmsg on_
+
+    # performance governor
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+    #write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor performance
+    #write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor performance
+    #write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor performance
+
+    # schedutil governor
+    # DAH-485
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+    #write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor schedutil
+    #write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor schedutil
+    #write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor schedutil
+    #write /sys/devices/system/cpu/cpufreq/schedutil/down_rate_limit_us 10000
+    #write /sys/devices/system/cpu/cpufreq/schedutil/up_rate_limit_us 570
+    #write /proc/sys/kernel/sched_util_clamp_min_rt_default 700
+
+    #start module load in the background
+    start vendor.insmod_sh
+
+on init
+    # DAH-485
+    write /dev/cpuctl/background/cpu.uclamp.min 60
+    write /dev/cpuctl/foreground/cpu.uclamp.min 60
+    write /dev/cpuctl/top-app/cpu.uclamp.min 60
+
+    #start rtkbpf
+    #start bpfloader
+    start watchdogd
+
+    # start console earlier
+    start console
+
+    # Support legacy paths
+    #symlink /sdcard /mnt/sdcard
+    #symlink /sdcard /storage/sdcard0
+
+    # FIXME: set boost to 0
+    #write /proc/sys/vm/watermark_boost_factor 0
+
+    ## Create UDS structure for base VR services
+    #mkdir /tmp 0775 root system
+    #mount tmpfs tmpfs /tmp mode=0775,uid=0,gid=1000
+    mkdir /dev/socket/pdx 0775 system system
+    mkdir /dev/socket/pdx/system 0775 system system
+    #mkdir /dev/socket/pdx/system/buffer_hub 0775 system system
+    #mkdir /dev/socket/pdx/system/performance 0775 system system
+    #mkdir /dev/socket/pdx/system/vr 0775 system system
+    #mkdir /dev/socket/pdx/system/vr/display 0775 system system
+    #mkdir /dev/socket/pdx/system/vr/pose 0775 system system
+    #mkdir /dev/socket/pdx/system/vr/sensors 0775 system system
+
+on early-fs
+    # We need vold early for metadata encryption
+    #start vold
+
+on fs
+    # Start HW service manager early
+    #start hwservicemanager
+
+    # metadata partition
+    mount_all /vendor/etc/fstab.${ro.hardware} --early
+
+on late-fs
+    #wait_for_prop vendor.all.modules.ready 1
+
+    # Start services for bootanim
+    #start DVCP
+    #start surfaceflinger
+    #start bootanim
+    #start vendor.configstore-hal
+    #start vendor.gralloc-4-0
+
+    # Wait for hwservicemanager ready since fsck might be triggered in mount_all --late
+    # In such case, init won't responce the property_set from hwservicemanager and then
+    # cause services for bootanim not running.
+    wait_for_prop hwservicemanager.ready true
+
+    # Wait for keymaster
+    #exec_start wait_for_keymaster
+
+    # Mount RW partitions which need run fsck
+    mount_all /vendor/etc/fstab.${ro.hardware} --late
+
+    # boot time fs tune
+    # FIXME: set iostats to 0 may cause bootchart fail to work
+    write /sys/block/mmcblk0/queue/iostats 0
+    write /sys/block/mmcblk0/queue/scheduler bfq
+    write /sys/block/mmcblk0/queue/iosched/slice_idle 0
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+    write /sys/block/dm-0/queue/read_ahead_kb 2048
+    write /sys/block/dm-1/queue/read_ahead_kb 2048
+    write /sys/block/dm-2/queue/read_ahead_kb 2048
+    write /sys/block/dm-3/queue/read_ahead_kb 2048
+    write /sys/block/dm-4/queue/read_ahead_kb 2048
+    write /sys/block/dm-5/queue/read_ahead_kb 2048
+    write /sys/block/dm-6/queue/read_ahead_kb 2048
+    write /sys/block/dm-7/queue/read_ahead_kb 2048
+    write /sys/block/dm-8/queue/read_ahead_kb 2048
+
+service vendor.insmod_sh /vendor/bin/init.insmod.sh
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+service gencpuid /vendor/bin/GenCpuID
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+service getmacsn /vendor/bin/GetMacSn
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+on post-fs-data
+    # set RLIMIT_MEMLOCK to 8MB
+    setrlimit 8 8388608 8388608
+
+    # mkdir /data/radio 0775 radio radio
+    # mkdir /data/radio/log 0775 radio radio
+
+    #chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+
+    #PPPoE conf folder
+    #mkdir /data/misc/ppp 0775 system system
+
+    # hdcp
+    mkdir /data/vendor/hdcp 0775 system system
+
+    # key tmp
+    mkdir /data/vendor/tmp 0775 system system
+
+    # tee
+    mkdir /data/vendor/tee 0700 system system
+    mkdir /data/vendor/mediadrm 0770 media mediadrm
+    mkdir /data/vendor/mediacas 0770 media mediadrm
+
+    # storage
+    mkdir /data/vendor/storage 0700 system system
+    #rm /data/vendor/storage/storage_checking_result
+
+    # DvdPlayer
+    mkdir /data/vendor/misc 0770 media media
+    mkdir /data/vendor/misc/media 0770 media media
+
+    # bluetooth
+    mkdir /data/vendor/bluetooth 0770 bluetooth bluetooth
+
+# zygote need to be started after otapreopt which will be done on post-fs-data
+on zygote-start
+    # zygote is started in common init.rc
+    # and now we can continue initialize /data/
+    #mkdir /data/tombstones 0771 system system
+    #mkdir /tombstones/modem 0771 system system
+    #mkdir /tombstones/lpass 0771 system system
+    #mkdir /tombstones/wcnss 0771 system system
+    #mkdir /tombstones/dsps 0771 system system
+    #mkdir /persist/data/sfs 0700 system system
+    #mkdir /persist/data/tz 0700 system system
+    #mkdir /data/misc/dts 0770 media audio
+    #mkdir /data/misc/tloc/ 0700 system drmrpc
+    #mkdir /data/misc/qvop 0660 system system
+    #mkdir /data/misc/audio_pp 0771 media audio
+    #mkdir /data/preloads 0775 system system
+    #mkdir /data/preloads/media 0775 system system
+    #mkdir /data/preloads/demo 0775 system system
+    #mkdir /data/misc/netmgr 0770 system radio
+
+    #mkdir /data/media 0770 media_rw media_rw
+    #chown media_rw media_rw /data/media
+
+    # Create the directories used by the Wireless subsystem
+    #mkdir /data/misc/wifi 0770 wifi wifi
+    #mkdir /data/misc/wifi/wpa_supplicant 0770 wifi wifi
+    mkdir /data/vendor/wifi 0771 wifi wifi
+    mkdir /data/vendor/wifi/wpa 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
+    #mkdir /data/misc/dhcp 0770 dhcp dhcp
+    #chown dhcp dhcp /data/misc/dhcp
+
+    # Create directory used by audio subsystem
+    mkdir /data/vendor/audio 0770 audio audio
+
+     #mkdir /data/audio/ 0770 media audio
+
+    setprop vold.post_fs_data_done 1
+
+on early-boot
+    # Update dm-verity state and set partition.*.verified properties
+    #verity_update_state
+
+on boot
+    setprop ro.oem.key1 ${ro.boot.oemkey1}
+
+    # performance governor
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor performance
+    
+    # insert paragon kernel module
+    #insmod /system/vendor/lib/modules/jnl.ko
+    #insmod /system/vendor/lib/modules/ufsd.ko
+
+    # insert btusb kernel module
+    #insmod /system/vendor/lib/modules/rtk_btusb.ko
+
+    #insert cvbs detect kernel module
+    #insmod /system/vendor/lib/modules/cvbs_switch.ko
+
+    chown system graphics /sys/kernel/debug/sync/sw_sync
+    chmod 0660 /sys/kernel/debug/sync/sw_sync
+    chown system graphics /dev/rtk_sw_sync
+    chmod 0660 /dev/rtk_sw_sync
+    chown system system /sys/kernel/suspend/mode
+    chmod 0664 /sys/kernel/suspend/mode
+    chown system system /sys/kernel/suspend/context
+    chmod 0664 /sys/kernel/suspend/context
+    chown system system /sys/kernel/suspend/watchdog_timer_sec
+    chmod 0664 /sys/kernel/suspend/watchdog_timer_sec
+    chown system system /sys/kernel/suspend/watchdog_en
+    chmod 0664 /sys/kernel/suspend/watchdog_en
+    chown system system /sys/class/rtk_pm/android_control/pm_state
+    chmod 0665 /sys/class/rtk_pm/android_control/pm_state
+    chown system system /sys/class/rtk_pm/android_control/pm_wakelock_mode
+    chmod 0665 /sys/class/rtk_pm/android_control/pm_wakelock_mode
+    chown system system /sys/class/rtk_pm/android_control/pm_block_wakelock
+    chmod 0665 /sys/class/rtk_pm/android_control/pm_block_wakelock
+
+    # wake up source control
+    chown system system /sys/kernel/suspend/wakeup
+    chmod 0665 /sys/kernel/suspend/wakeup
+    chown system system /sys/kernel/suspend/timer
+    chmod 0665 /sys/kernel/suspend/timer
+
+    # ir key info for kernel 5.4
+    chmod 0665 /sys/kernel/suspend/ir_key
+    chown system system /sys/kernel/suspend/ir_key
+    chmod 0665 /sys/kernel/suspend/reasons
+    chown system system /sys/kernel/suspend/reasons
+
+    # bluetooth
+    # change back to bluetooth from system
+    #chown bluetooth net_bt_admin /data/misc/bluetooth
+    #mkdir /data/misc/bluedroid 0770 bluetooth net_bt_admin
+    # bluetooth LPM
+    chown bluetooth net_bt_admin /proc/bluetooth/sleep/lpm
+    chown bluetooth net_bt_admin /proc/bluetooth/sleep/btwrite
+
+    #UART device
+    chmod 0660 /dev/ttyS1
+    chown bluetooth net_bt_admin /dev/ttyS1
+    chmod 666 /dev/ttyUSB0
+    chown bluetooth net_bt_admin /dev/ttyUSB0
+
+    # bluetooth MAC address programming
+    chown bluetooth net_bt_admin ro.bt.bdaddr_path
+    chown bluetooth net_bt_admin /system/etc/bluetooth
+    #chown bluetooth net_bt_admin /data/misc/bluetooth
+    #setprop ro.bt.bdaddr_path "/data/misc/bluetooth/bdaddr"
+
+    setprop wifi.interface wlan0
+
+    # Remove SUID bit for iproute2 ip tool
+    #chmod 0755 /system/bin/ip
+
+    # Assign TCP buffer thresholds to be ceiling value of technology maximums
+    # Increased technology maximums should be reflected here.
+    write /proc/sys/net/core/rmem_max  8388608
+    write /proc/sys/net/core/wmem_max  8388608
+
+    # To prevent out of order acknowledgements from making
+    # connection tracking to treat them as not belonging to
+    # the connection they belong to.
+    # Otherwise, a weird issue happens in which some long
+    # connections on high-throughput links get dropped when
+    # an ack packet comes out of order
+    write /proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal 1
+
+    setprop vendor.postinst_rtk 5
+
+    setprop property:persist.sys.rtk.mouse.speed 6
+    setprop property:persist.sys.rtk.mouse.distance 2
+
+    # DAH-485
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 1000000
+
+    start gencpuid
+    start getmacsn
+
+on property:vendor.all.modules.ready=1
+    # set rfkill file node while module is ready
+    chmod 0660 /sys/class/rfkill/rfkill0/state
+    chmod 0660 /sys/class/rfkill/rfkill0/type
+    chown bluetooth net_bt_admin /sys/class/rfkill/rfkill0/state
+    chown bluetooth net_bt_admin /sys/class/rfkill/rfkill0/type
+    write /sys/class/rfkill/rfkill0/state 0
+    chmod 0666 /sys/class/leds/sys_led/brightness
+
+#on property:persist.vendor.dvdlog=1
+#    restart DvdPlayer
+#
+#on property:persist.vendor.dvdlog=0
+#    restart DvdPlayer
+
+on property:vendor.rtk.8822cs=1
+    insmod /vendor_dlkm/lib/modules/8822cs.ko ifname=wlan0 if2name=p2p0 if3name=ap0
+    chmod 0660 /dev/ttyS1
+    chown bluetooth net_bt_admin /dev/ttyS1
+    setprop bluetooth.core.gap.le.privacy.enabled false
+    setprop wifi.direct.interface p2p0
+    setprop wifi.concurrent.interface ap0
+    start vendor.bluetooth-1-0
+
+on property:vendor.rtk.8852bs=1
+    insmod /vendor_dlkm/lib/modules/8852bs.ko ifname=wlan0 if2name=p2p0 if3name=ap0
+    chmod 0660 /dev/ttyS1
+    chown bluetooth net_bt_admin /dev/ttyS1
+    setprop bluetooth.core.gap.le.privacy.enabled false
+    setprop wifi.direct.interface p2p0
+    setprop wifi.concurrent.interface ap0
+    start vendor.bluetooth-1-0
+
+on property:sys.boot_completed=1
+    class_start delay_start
+
+    # update GPU to performance
+    #write /sys/class/devfreq/98200000.gpu/min_freq 585000000
+
+    # update cpusets now that boot is complete and we want better load balancing
+    # write /dev/cpuset/top-app/cpus 0-3
+    # write /dev/cpuset/foreground/cpus 0-1
+    # write /dev/cpuset/background/cpus 0
+    # write /dev/cpuset/system-background/cpus 0-1
+    # write /dev/cpuset/restricted/cpus 0-1
+
+    # write /dev/cpuset/restricted/cpus 0-1
+    # write /dev/cpuset/background/cpus 0
+
+    write /dev/cpuset/system-background/sched_load_balance 0
+    write /dev/cpuset/foreground/sched_load_balance 1
+    write /dev/cpuset/camera-daemon/sched_load_balance 0
+    write /dev/cpuset/sched_load_balance 1
+    write /dev/cpuset/top-app/sched_load_balance 1
+    write /dev/cpuset/background/sched_load_balance 0
+    write /dev/cpuset/restricted/sched_load_balance 0
+
+    # default cpu.shares as 1024
+    write /dev/cpuctl/top-app/cpu.shares 20480
+    write /dev/cpuctl/foreground/cpu.shares 20480
+    write /dev/cpuctl/background/cpu.shares 1024
+    write /dev/cpuctl/nnapi-hal/cpu.shares 20480
+    write /dev/cpuctl/rt/cpu.shares 20480
+    write /dev/cpuctl/system-background/cpu.shares 1024
+
+    # default cpu.uclamp.latency_sensitive as 0
+    write /dev/cpuctl/top-app/cpu.uclamp.latency_sensitive 1
+    write /dev/cpuctl/foreground/cpu.uclamp.latency_sensitive 1
+    write /dev/cpuctl/rt/cpu.uclamp.latency_sensitive 1
+    write /dev/cpuctl/camera-daemon/cpu.uclamp.latency_sensitive 1
+
+    # default cpu.uclamp.min as 0.0
+    write /dev/cpuctl/top-app/cpu.uclamp.min 90.0
+    write /dev/cpuctl/camera-daemon/cpu.uclamp.min 50.0
+    write /dev/cpuctl/foreground/cpu.uclamp.min 50.0
+    write /dev/cpuctl/rt/cpu.uclamp.min 50.0
+    write /dev/cpuctl/system/cpu.uclamp.min 0.0
+    write /dev/cpuctl/system-background/cpu.uclamp.min 0.0
+    write /dev/cpuctl/background/cpu.uclamp.min 0.0
+    write /dev/cpuctl/dex2oat/cpu.uclamp.min 0.0
+
+    # default cpu.uclamp.max as max
+    write /dev/cpuctl/system-background/cpu.uclamp.max 50.0
+    write /dev/cpuctl/background/cpu.uclamp.max 50.0
+    write /dev/cpuctl/dex2oat/cpu.uclamp.max 60.0
+
+    # end boot time fs tune
+    write /dev/sys/block/by-name/rootdisk/queue/iostats 1
+    write /dev/sys/block/by-name/userdata/queue/iostats 1
+    write /sys/block/mmcblk0/queue/iostats 1
+    #write /sys/block/mmcblk0/queue/scheduler deadline
+    exec_background - root shell -- /vendor/bin/cpuset_control.sh
+
+on property:persist.sys.rtk.hdmirx.version=1.4
+    write /sys/devices/platform/98037000.hdmirx/edid_version 1.4
+
+on property:persist.sys.rtk.hdmirx.version=2.0
+    write /sys/devices/platform/98037000.hdmirx/edid_version 2.0
+
+#Realtek wireless extension actions.
+on property:vendor.net.wifi.ext.actions=1
+    write /sys/class/net/wlan0/queues/rx-0/rps_cpus f
+    write /sys/class/net/wlan0/queues/rx-1/rps_cpus f
+    write /sys/class/net/wlan0/queues/rx-2/rps_cpus f
+    write /sys/class/net/wlan0/queues/rx-3/rps_cpus f
+    write /sys/class/net/p2p0/queues/rx-0/rps_cpus f
+    write /sys/class/net/p2p0/queues/rx-1/rps_cpus f
+    write /sys/class/net/p2p0/queues/rx-2/rps_cpus f
+    write /sys/class/net/p2p0/queues/rx-3/rps_cpus f
+
+on property:persist.sys.rtk.performancemode=1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor performance
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor performance
+
+on property:persist.sys.rtk.gpu_performancemode=1
+    write /sys/class/devfreq/981d0000.gpu/governor performance
+    write /sys/class/devfreq/981d0000.gpu/min_freq 702000000
+    write /sys/class/devfreq/981d0000.gpu/max_freq 702000000
+
+on property:sys.boot_completed=1 && property:persist.sys.rtk.performancemode=0
+#    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
+#    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor ondemand
+#    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor ondemand
+#    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor ondemand
+# DAH-485 - select schedutil
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor schedutil
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor schedutil
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor schedutil
+#    write /sys/devices/system/cpu/cpufreq/schedutil/down_rate_limit_us 10000
+#    write /sys/devices/system/cpu/cpufreq/schedutil/up_rate_limit_us 570
+# DAH-485 - update schedutil parameters
+    #write /proc/sys/kernel/sched_util_clamp_min_rt_default 700
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 1000000
+    #write /dev/cpuctl/background/cpu.uclamp.min 60
+    #write /dev/cpuctl/foreground/cpu.uclamp.min 60
+    #write /dev/cpuctl/top-app/cpu.uclamp.min 60
+
+# acquire wake_lock
+#on property:persist.vendor.rtk.awake=1
+#    write /sys/power/wake_lock rtkawake2
+
+# release wake_lock
+#on property:persist.vendor.rtk.awake=0
+#    write /sys/power/wake_unlock rtkawake2
+
+on property:ro.hdmi.device_type=5
+    setprop vendor.hdmi.audiosystem.enable 1
+
+on property:vendor.hwc.dv.show.osd.enable=1
+    chmod 0777 /storage/
+on property:vendor.hwc.dv.show.osd.enable=0
+    chmod 0710 /storage/
+
+on property:persist.sys.hdmi.cec_version=5
+    setprop persist.vendor.hdmi.cec_version 5
+
+on property:persist.sys.hdmi.cec_version=6
+    setprop persist.vendor.hdmi.cec_version 6
+
+# for cec driver
+on property:persist.sys.rtk.cec.wakeup=1
+    wait /proc/rtk/cec_wakeup
+    write /proc/rtk/cec_wakeup 1
+
+on property:persist.sys.rtk.cec.wakeup=0
+    wait /proc/rtk/cec_wakeup
+    write /proc/rtk/cec_wakeup 0
+
+on property:persist.sys.rtk.mouse.speed=0
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 1
+
+on property:persist.sys.rtk.mouse.speed=1
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 1
+
+on property:persist.sys.rtk.mouse.speed=2
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 2
+
+on property:persist.sys.rtk.mouse.speed=3
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 3
+
+on property:persist.sys.rtk.mouse.speed=4
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 4
+
+on property:persist.sys.rtk.mouse.speed=5
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 5
+
+on property:persist.sys.rtk.mouse.speed=6
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 6
+
+on property:persist.sys.rtk.mouse.speed=7
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 7
+
+on property:persist.sys.rtk.mouse.speed=8
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 8
+
+on property:persist.sys.rtk.mouse.speed=9
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 9
+
+on property:persist.sys.rtk.mouse.speed=10
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_speed 10
+
+on property:persist.sys.rtk.mouse.distance=0
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 1
+
+on property:persist.sys.rtk.mouse.distance=1
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 1
+
+on property:persist.sys.rtk.mouse.distance=2
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 2
+
+on property:persist.sys.rtk.mouse.distance=3
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 3
+
+on property:persist.sys.rtk.mouse.distance=4
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 4
+
+on property:persist.sys.rtk.mouse.distance=5
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 5
+
+on property:persist.sys.rtk.mouse.distance=6
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 6
+
+on property:persist.sys.rtk.mouse.distance=7
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 7
+
+on property:persist.sys.rtk.mouse.distance=8
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 8
+
+on property:persist.sys.rtk.mouse.distance=9
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 9
+
+on property:persist.sys.rtk.mouse.distance=10
+    write /sys/devices/platform/soc@0/98000000.rbus/98007000.syscon/98007400.irda/mouse_distance 10

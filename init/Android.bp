@@ -1,0 +1,93 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+prebuilt_etc {
+    name: "fstab.rtd1325",
+    src: "fstab.rtd1325",
+    soc_specific: true,
+    vendor_ramdisk_available: true,
+}
+
+prebuilt_etc {
+    name: "fstab.zram.50p",
+    src: "fstab.zram.50p",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.insmod.cfg",
+    src: "init.insmod.cfg",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.common.usb.rc",
+    src: "init.common.usb.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.rtd1325.rc",
+    src: "init.rtd1325.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.rtd1325.poweralloc.rc",
+    src: "init.rtd1325.poweralloc.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.rtd1325.tunning.rc",
+    src: "init.rtd1325.tunning.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.rtd1325.usb.rc",
+    src: "init.rtd1325.usb.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "init.recovery.rtd1325.rc",
+    src: "init.recovery.rtd1325.rc",
+    sub_dir: "init",
+    recovery: true,
+}
+
+prebuilt_etc {
+    name: "ueventd.rtd1325.rc",
+    filename: "ueventd.rc",
+    src: "ueventd.rtd1325.rc",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "android.hardware.wifi-service.rtk.rc",
+    src: "android.hardware.wifi-service.rtk.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "android.hardware.audio.service.rtk.rc",
+    src: "android.hardware.audio.service.rtk.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}
+
+prebuilt_etc {
+    name: "android.hardware.bluetooth@1.1-service.rtk.rc",
+    src: "android.hardware.bluetooth@1.1-service.rtk.rc",
+    sub_dir: "init",
+    soc_specific: true,
+}

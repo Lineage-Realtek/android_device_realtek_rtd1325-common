@@ -1,0 +1,15 @@
+# The controller and role switch match stock init.rtd1325.usb.rc.
+# Recovery's generic init.rc creates and binds the configfs gadget.
+on init
+    setprop sys.usb.configfs 1
+    setprop sys.usb.controller 98050000.dwc3
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=adb && property:sys.usb.configfs=1
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=sideload && property:sys.usb.configfs=1
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device
+
+on property:sys.usb.config=fastboot && property:sys.usb.configfs=1
+    write /sys/class/usb_role/98013e00.usb-port2-role-switch/role device

@@ -1,0 +1,52 @@
+# Realtek daemons. Bring-up policy: declared, entered from init and left
+# permissive, so that the denials they log can be turned into rules.
+
+type rtk_audioutil, domain;
+type rtk_audioutil_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_audioutil)
+permissive rtk_audioutil;
+
+type rtk_karaoke, domain;
+type rtk_karaoke_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_karaoke)
+permissive rtk_karaoke;
+
+type rtk_seutil, domain;
+type rtk_seutil_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_seutil)
+permissive rtk_seutil;
+
+type rtk_voututil, domain;
+type rtk_voututil_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_voututil)
+permissive rtk_voututil;
+
+type rtk_insmod, domain;
+type rtk_insmod_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_insmod)
+permissive rtk_insmod;
+
+type rtk_setup, domain;
+type rtk_setup_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_setup)
+permissive rtk_setup;
+
+type rtk_keyset, domain;
+type rtk_keyset_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_keyset)
+permissive rtk_keyset;
+
+type rtk_sideband, domain;
+type rtk_sideband_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_sideband)
+permissive rtk_sideband;
+
+type rtk_fwdbg, domain;
+type rtk_fwdbg_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_fwdbg)
+permissive rtk_fwdbg;
+
+type rtk_perf, domain;
+type rtk_perf_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(rtk_perf)
+permissive rtk_perf;

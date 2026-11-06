@@ -1,0 +1,6 @@
+vendor.realtek.audioutil.IAudioUtil/default        u:object_r:rtk_audioutil_service:s0
+vendor.realtek.karaoke.IKaraoke/default            u:object_r:rtk_karaoke_service:s0
+vendor.realtek.voututil.IVoutUtil/default          u:object_r:rtk_voututil_service:s0
+android.hardware.drm.IDrmFactory/widevine          u:object_r:hal_drm_service:s0
+android.hardware.drm.IDrmFactory/playready         u:object_r:hal_drm_service:s0
+android.hardware.camera.provider.ICameraProvider/external/0 u:object_r:hal_camera_service:s0

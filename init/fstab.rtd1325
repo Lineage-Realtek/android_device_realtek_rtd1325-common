@@ -1,0 +1,42 @@
+# Android fstab file.
+#<src>                                                  <mnt_point>         <type>    <mnt_flags>                                                                         <fs_mgr_flags>
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+
+system      /system         erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_system,avb_keys=/avb
+
+# For EXT4-based GSI images
+system      /system         ext4     ro,barrier=1      wait,logical,first_stage_mount,slotselect,avb=vbmeta_system,avb_keys=/avb
+
+system_ext  /system_ext     erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_system
+system_dlkm /system_dlkm    erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_system
+product     /product        erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_system
+vendor      /vendor         erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_vendor
+vendor_dlkm /vendor_dlkm    erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_vendor
+odm         /odm            erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_vendor
+odm_dlkm    /odm_dlkm       erofs    ro      wait,logical,first_stage_mount,slotselect,avb=vbmeta_vendor
+
+/dev/block/platform/soc@0/98000000.rbus/98012000.emmc/by-name/oem         /oem            ext4    ro,barrier=1      wait,slotselect,avb,first_stage_mount
+/dev/block/platform/soc@0/98000000.rbus/98012000.emmc/by-name/metadata    /metadata       f2fs    rw,noatime,nosuid,nodev,discard,sync      wait,formattable,first_stage_mount,check
+/dev/block/platform/soc@0/98000000.rbus/98012000.emmc/by-name/userdata    /data           f2fs    rw,noatime,nosuid,nodev,discard,reserve_root=32768,resgid=1065    wait,formattable,latemount,check,fileencryption=aes-256-xts:aes-256-cts:v2,keydirectory=/metadata/vold/metadata_encryption,quota,reservedsize=128M,checkpoint=fs
+/dev/block/platform/soc@0/98000000.rbus/98012000.emmc/by-name/misc        /misc           emmc    defaults         defaults
+
+/dev/block/platform/soc@0/98000000.rbus/98012000.emmc/by-name/ta          /vendor/ta      ext4    ro,noatime       wait,slotselect
+
+/dev/block/zram0        none        swap    defaults    zramsize=50%,swapprio=30
+
+# USB
+/devices/platform/soc@0/98000000.rbus/*rtk_usb_manager/*.usb_port*/*/usb* auto auto defaults voldmanaged=usb:auto,encryptable=userdata
+/devices/platform/soc@0/98000000.rbus/*rtk-usb-manager/*.usb-port*/*/usb* auto auto defaults voldmanaged=usb:auto,encryptable=userdata
+# SD Card
+/devices/platform/soc@0/98000000.rbus/*.sdmmc/*/mmc*         auto    auto    defaults    voldmanaged=sdcard1:auto,encryptable=userdata
+/devices/platform/soc@0/98000000.rbus/*.sdhci/*/mmc*         auto    auto    defaults    voldmanaged=sdcard1:auto,encryptable=userdata   
+# SATA
+/devices/platform/soc@0/98000000.rbus/9803f000.sata/ata*            auto    auto    defaults    voldmanaged=sata:auto,encryptable=userdata
+
+/dev/block/by-name/boot /boot emmc defaults recoveryonly,slotselect,first_stage_mount
+/dev/block/by-name/init_boot /init_boot emmc defaults recoveryonly,slotselect,first_stage_mount
+/dev/block/by-name/vendor_boot /vendor_boot emmc defaults recoveryonly,slotselect,first_stage_mount
+/dev/block/by-name/vbmeta /vbmeta emmc defaults recoveryonly,slotselect,first_stage_mount
+/dev/block/by-name/vbmeta_system /vbmeta_system emmc defaults recoveryonly,slotselect,first_stage_mount
+/dev/block/by-name/vbmeta_vendor /vbmeta_vendor emmc defaults recoveryonly,slotselect,first_stage_mount

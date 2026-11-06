@@ -1,0 +1,7 @@
+# The prebuilt Widevine vendor APEX labels its service executable with this type.
+# Match the DRM domain setup in device/amlogic/sepolicy/common/vendor.
+type hal_drm_widevine, domain;
+hal_server_domain(hal_drm_widevine, hal_drm)
+
+type hal_drm_widevine_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(hal_drm_widevine)

@@ -1,0 +1,4 @@
+type rtk_block_device, dev_type;
+type rtk_rpc_device, dev_type;
+type rtk_media_device, dev_type;
+type rtk_misc_device, dev_type;
